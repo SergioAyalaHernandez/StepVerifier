@@ -1,12 +1,21 @@
 package org.example.stepverifier;
 
+import org.example.stepverifier.services.MonoServices;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.time.Duration;
 
+import static org.junit.jupiter.api.Assertions.*;
+@SpringBootTest
 class EjemplosTestsTest {
+
+    @Autowired
+    MonoServices monoServices;
 
     @Test
     void testFlux() {
@@ -35,5 +44,29 @@ class EjemplosTestsTest {
                 .expectComplete()
                 .verify();
 
+    }
+
+    @Test
+    void testMono(){
+        Mono<String> uno = monoServices.buscarUno();
+        StepVerifier.create(uno).expectNext("Hola").verifyComplete();
+    }
+
+    @Test
+    void testVarios(){
+        Flux<String> varios = monoServices.buscarTodos();
+        StepVerifier.create(varios).expectNext("hola").expectNext("que").expectNext("tal").verifyComplete();
+    }
+
+    @Test
+    void testTiempos(){
+        Flux<String> varios = monoServices.buscarTodosLento();
+        StepVerifier.create(varios).expectNext("hola")
+                .thenAwait(Duration.ofSeconds(1))
+                .expectNext("que")
+                .thenAwait(Duration.ofSeconds(1))
+                .expectNext("tal")
+                .thenAwait(Duration.ofSeconds(1))
+                .verifyComplete();
     }
 }
